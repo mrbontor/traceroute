@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <title>Trace Route</title>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+                <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                </ul>
+
+                <div class="mx-auto">
+                    <a href="#" class="navbar-brand">Visualization Trace Route</a>
+                </div>
+
+                <form class="form-inline my-2 my-lg-0" id="inform2" action="#" method="POST">
+                    <input class="form-control mr-sm-2" id="hostname2" type="search" placeholder="Search hostname">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit" id="btn2" value="trace">Search</button>
+                </form>
+            </div>
+        </nav>
+    </div>
+
+    <div class="container-fluid">
+        <div class="page-header">
+            <h1>Visual Traceroute</h1>
+        </div>
+        <hr>
+        <div class="row grid-divider">
+            <div class="col-lg-6">
+                <div class="panel panel-default">
+                    <div class="panel panel-body">
+                        <form class="form-inline" id="inform" action="#" method="POST">
+                            <div class="input-group mb-2 mr-sm-2">
+                                <input type="text" required class="form-control" id="hostname" placeholder="Enter host name">
+                            </div>
+                            <input type="submit" class="btn btn-primary mb-2" id="btn" value="trace">
+                        </form>
+                    </div>
+                </div>
+                <table class="table table-striped" id="hops">
+                    <thead>
+                        <th>Hop</th>
+                        <th>IP</th>
+                        <th>City</th>
+                        <th>Region</th>
+                        <th>Country</th>
+                        <th>Status</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="col-lg-6">
+                <div id="mapid" style="height: 385px"></div>
+            </div>
+        </div>
+    </div>
+    <hr>
+
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                Logger
+            </div>
+            <div class="card-body">
+                <blockquote class="blockquote mb-0" id="logger">
+                </blockquote>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                Quote
+            </div>
+            <div class="card-body">
+                <blockquote class="blockquote mb-0">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+                    <footer class="blockquote-footer">Someone famous in <cite title="Source Title">Source Title</cite></footer>
+                </blockquote>
+            </div>
+        </div>
+    </div>
+    <script>
+        function disableButton(data, value) {
+            var btn = document.getElementById('btn');
+            btn.disabled = data;
+            btn.value = value
+        }
+        $(function() {
+            var inform = $("#inform");
+            var hostnameField = $("#hostname");
+            var hopCount = 0;
+            var realHop = 0;
+            var prevLat = "";
+            var prevLon = "";
+            var speed = "";
+            var layers = [];
+
+            // set up the map
+            var mymap = L.map("mapid").setView([3.6424551, 98.5994535], 4); // Medan City, Nort Sumatra
+            L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(mymap);
+            var polyline = null;
+
+            // set up web socket
+            var socket = new WebSocket("ws://localhost:3000/");
+            socket.onerror = (error) => {
+                alert("Error! Trace has stopped")
+            };
+            socket.onmessage = (event) => {
+                var loc = JSON.parse(event.data);
+                var realLoc = JSON.parse(event.data);
+                console.time(loc)
+                if (loc.status == "fail") {
+                    return;
+                }
+                if (loc.status == "done") {
+                    $("#hops tfoot").append("<tr><td>Trace is done</td></tr>")
+                    hostnameField.val("");
+                    return;
+                }
+
+                // if (realLoc.status == "fail") {
+                //     return;
+                // }
+                if (realLoc.status == "done") {
+                    $("#hops tfoot").append("<tr><td>Trace is done</td></tr>")
+                    hostnameField.val("");
+                    return;
+                }
+
+                if (realLoc.lat == prevLat && realLoc.lon == prevLon) {
+                    // don't plot duplicate hop
+                    return;
+                }
+
+                hopCount++;
+                realHop++;
+                var row = "<tr><td>" + realHop +
+                    "</td><td>" + realLoc.query +
+                    "</td><td>" + realLoc.city +
+                    "</td><td>" + realLoc.region +
+                    "</td><td>" + realLoc.country +
+                    "</td><td>" + realLoc.status +
+                    "</td></tr>";
+                $("#hops tbody").append(row);
+                prevLat = loc.lat;
+                prevLon = loc.lon;
+                var marker = L.marker([loc.lat, loc.lon], {
+                    title: "Hop: " + hopCount
+                }).addTo(mymap);
+                layers.push(marker);
+                disableButton(false, "trace")
+                // draw polyline
+                if (polyline == null) {
+                    polyline = L.polyline([
+                        [loc.lat, loc.lon]
+                    ], {
+                        color: "purple"
+                    }).addTo(mymap);
+                    layers.push(polyline);
+                } else {
+                    var latlon = L.latLng(loc.lat, loc.lon);
+                    polyline.addLatLng(latlon);
+                }
+            };
+
+            socket.onclose = (event) => {
+                disableButton(false)
+                hostnameField.val("");
+            };
+
+            inform.submit((event) => {
+                event.preventDefault();
+                disableButton(true, "Tracing")
+                $("#hops tbody").html("");
+                $("#hops tfoot").html("");
+                layers.filter(layer => layer != null).forEach(layer => mymap.removeLayer(layer));
+                polyline = null;
+                layers = [];
+                hopCount = 0;
+                socket.send(hostnameField.val());
+            });
+        });
+    </script>
+</body>
+
+</html>

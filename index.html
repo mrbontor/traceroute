@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+        <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+        <title>Trace Route</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="page-header">
+                <h1>Visual Traceroute</h1>
+            </div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="panel panel-default">
+                        <div class="panel panel-body">
+                            <form class="form-inline" id="inform" action="#" method="POST">
+                                <div class="form-group">
+                                    <input type="text" id="hostname" placeholder="Enter host name">
+                                </div>
+                                <div class="form-group">
+                                    <input type="submit" id="btn" value="trace">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <table class="table table-striped" id="hops">
+                        <thead>
+                            <th>Hop</th>
+                            <th>IP</th>
+                            <th>City</th>
+                            <th>Region</th>
+                            <th>Country</th>
+                            <th>Status</th>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                        <tfoot>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="col-lg-6">
+                    <div id="mapid" style="width: 700px; height: 385px"></div>
+                </div>
+            </div>
+        </div>
+        <script>
+            $(function() {
+                var inform = $("#inform");
+                var hostnameField = $("#hostname");
+                var hopCount = 0;
+                var realHop = 0;
+                var prevLat = "";
+                var prevLon = "";
+				var layers = [];
+
+                // set up the map
+                var mymap = L.map("mapid").setView([39.50, -98.35], 4); // center of US
+                L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png',
+                    { attribution: '© OpenStreetMap' }).addTo(mymap);
+                var polyline = null;
+
+                // set up web socket
+                var socket = new WebSocket("ws://localhost:8080/");
+                socket.onerror = (error) => {
+                    alert("Error! Trace has stopped")
+                };
+
+                socket.onmessage = (event) => {
+                    var loc = JSON.parse(event.data);
+                    var realLoc = JSON.parse(event.data);
+                    console.log(loc)
+                    if (loc.status == "fail") {
+                        return;
+                    }
+                    if (loc.status == "done") {
+                        $("#hops tfoot").append("<tr><td>Trace is done</td></tr>")
+						hostnameField.val("");
+                        return;
+                    }
+
+                    // if (realLoc.status == "fail") {
+                    //     return;
+                    // }
+                    if (realLoc.status == "done") {
+                        $("#hops tfoot").append("<tr><td>Trace is done</td></tr>")
+                        hostnameField.val("");
+                        return;
+                    }
+
+                    if (realLoc.lat == prevLat && realLoc.lon == prevLon) {
+						// don't plot duplicate hop
+                        return;
+                    }
+
+                    hopCount++;
+                    realHop++;
+                    var row = "<tr><td>" + realHop
+                                 + "</td><td>" + realLoc.query
+                                 + "</td><td>" + realLoc.city
+                                 + "</td><td>" + realLoc.region
+                                 + "</td><td>" + realLoc.country
+                                 + "</td><td>" + realLoc.status
+                                 + "</td></tr>";
+                    $("#hops tbody").append(row);
+
+                    prevLat = loc.lat;
+					prevLon = loc.lon;
+                    var marker = L.marker([loc.lat, loc.lon], {title: "Hop: " + hopCount}).addTo(mymap);
+					layers.push(marker);
+
+                    // draw polyline
+                    if (polyline == null) {
+                        polyline = L.polyline([[loc.lat, loc.lon]], {color: "purple"}).addTo(mymap);
+						layers.push(polyline);
+                    } else {
+                        var latlon = L.latLng(loc.lat, loc.lon);
+                        polyline.addLatLng(latlon);
+                    }
+                };
+
+                socket.onclose = (event) => {
+                    hostnameField.val("");
+                };
+
+                inform.submit((event) => {
+                    event.preventDefault();
+					$("#hops tbody").html("");
+					$("#hops tfoot").html("");
+					layers.filter(layer => layer != null).forEach(layer => mymap.removeLayer(layer));
+					polyline = null;
+					layers = [];
+					hopCount = 0;
+                    socket.send(hostnameField.val());
+                });
+            });
+        </script>
+    </body>
+</html>
