@@ -235,27 +235,13 @@
                 if (realLoc.region == ""){ region = realLoc.city}
 
                 let row = "<tr><td>" + realHop +
-                "</td><td>" + realLoc.query +
-                "</td><td>" + realLoc.city +
-                "</td><td>" + region +
-                "</td><td>" + realLoc.country +
-                "</td><td>" + realLoc.status +
-                "</td></tr>";
-                let _out = document.getElementById("hops")
-
-                let _isScrolledToBottom = _out.scrollHeight - _out.clientHeight <= _out.scrollTop + 1;
+                    "</td><td>" + realLoc.query +
+                    "</td><td>" + realLoc.city +
+                    "</td><td>" + region +
+                    "</td><td>" + realLoc.country +
+                    "</td><td>" + realLoc.status +
+                    "</td></tr>";
                 $("#hops tbody").append(row);
-                // scroll to bottom if isScrolledToBotto
-                if (_isScrolledToBottom)
-                    _out.scrollTop = _out.scrollHeight - _out.clientHeight;
-                // let row = "<tr><td>" + realHop +
-                //     "</td><td>" + realLoc.query +
-                //     "</td><td>" + realLoc.city +
-                //     "</td><td>" + region +
-                //     "</td><td>" + realLoc.country +
-                //     "</td><td>" + realLoc.status +
-                //     "</td></tr>";
-                // $("#hops tbody").append(row);
 
                 prevLat = realLoc.lat;
                 prevLon = realLoc.lon;
@@ -263,6 +249,7 @@
                     title: "Hop: " + realHop
                 }).addTo(mymap);
                 layers.push(marker);
+                disableButton(false, "Trace")
 
                 // draw polyline
                 if (polyline == null) {
@@ -304,7 +291,7 @@
                 }
             }
             socket_2.onclose = (event) => {
-                disableButton(false)
+                disableButton(false, "Trace")
                 hostnameField.val("");
             };
 
@@ -312,7 +299,7 @@
                 event.preventDefault();
                 disableButton(true, "Tracing...")
                 $("#hops tbody").html("");
-                // $("#hops tfoot").html("");
+                $("#hops tfoot").html("");
                 $("#logger").html("");
                 layers.filter(layer => layer != null).forEach(layer => mymap.removeLayer(layer));
                 polyline = null;

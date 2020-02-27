@@ -67,7 +67,7 @@ wss2.on('connection', function connection(ws) {
     // ...
 });
 
-let done = {status: false}
+// let done = {status: false}
 
 webServer.on('upgrade', function upgrade(request, socket, head) {
     const pathname = url.parse(request.url).pathname;
@@ -98,9 +98,11 @@ webServer.on('upgrade', function upgrade(request, socket, head) {
                             });
                     })
                     .on("close", (code) => {
+                        let done = {status: false}
                         ws.send(JSON.stringify(done))
                     });
 
+                logging.info(`[ENDTracing] ....`)
                 tracer.trace(hostname.toString());
             })
         });
@@ -114,6 +116,7 @@ webServer.on('upgrade', function upgrade(request, socket, head) {
                         ws.send(JSON.stringify(hop))
                     })
                     .on("close", (code) => {
+                        let done = {status: false}
                         ws.send(JSON.stringify(done))
                     });
                 tracer.trace(hostname.toString());

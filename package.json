@@ -1,0 +1,40 @@
+{
+  "name": "traceroute",
+  "version": "1.0.3",
+  "description": "visualization trace route using socket included logger",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "ini": "^1.3.5",
+    "minimist": "^1.2.0",
+    "nodejs-traceroute": "^1.2.0",
+    "winston": "^3.2.1",
+    "ws": "^7.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "\"start\": \"nodx.js\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrbontor/traceroute.git"
+  },
+  "keywords": [
+    "trace",
+    "route",
+    "nodejs",
+    "socket",
+    "logging",
+    "winston",
+    "maps",
+    "javascript",
+    "websocket",
+    "html"
+  ],
+  "author": "Mr B\u001b[D\u001b[D.\u001b[C\u001b[Cmrbontor\u001b[1;5D\u001b[1;5D\u001b[1;5D\u001b[1;5D\u001b[1;5D",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mrbontor/traceroute/issues"
+  },
+  "homepage": "https://github.com/mrbontor/traceroute#readme"
+}
