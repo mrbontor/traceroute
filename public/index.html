@@ -10,11 +10,39 @@
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
     <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <title>Trace Route</title>
+    <style>
+        body {
+            background: #151313;
+        }
+
+        #sailorTableArea {
+            max-height: 300px;
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        #hops {
+            white-space: normal;
+        }
+
+        tbody {
+            display: block;
+            height: 200px;
+            overflow: auto;
+        }
+
+        thead,
+        tbody tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container-fluid">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -36,41 +64,99 @@
             </div>
         </nav>
     </div>
-
+    <hr>
+    <br>
+    <br>
     <div class="container-fluid">
-        <div class="page-header">
-            <h1>Visual Traceroute</h1>
-        </div>
-        <hr>
-        <div class="row grid-divider">
-            <div class="col-lg-6">
-                <div class="panel panel-default">
-                    <div class="panel panel-body">
-                        <form class="form-inline" id="inform" action="#" method="POST">
-                            <div class="input-group mb-2 mr-sm-2">
-                                <input type="text" required class="form-control" id="hostname" placeholder="Enter host name">
+        <div class="card">
+            <div class="card-header">
+                Visual Traceroute Form && Map
+            </div>
+            <div class="card-body">
+                <div class="shadow-lg p-3 mb-5 bg-white rounded">
+                    <div class="row grid-divider">
+                        <div class="col-lg-6">
+                            <div class="panel panel-default">
+                                <div class="panel panel-body">
+                                    <form class="form-inline" id="inform" action="#" method="POST">
+                                        <div class="input-group mb-2 mr-sm-2">
+                                            <input type="text" required class="form-control" id="hostname" placeholder="Enter host name">
+                                        </div>
+                                        <input type="submit" class="btn btn-primary mb-2" id="btn" value="Trace">
+                                    </form>
+                                </div>
                             </div>
-                            <input type="submit" class="btn btn-primary mb-2" id="btn" value="trace">
-                        </form>
+                            <div id="sailorTableArea" class="table-responsive-sm table-striped">
+                                <table class="table" id="hops">
+                                    <thead>
+                                        <th>Hop</th>
+                                        <th>IP</th>
+                                        <th>City</th>
+                                        <th>Region</th>
+                                        <th>Country</th>
+                                        <th>Status</th>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                    <tfoot>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div id="mapid" style="height: 385px"></div>
+                        </div>
                     </div>
                 </div>
-                <table class="table table-striped" id="hops">
-                    <thead>
-                        <th>Hop</th>
-                        <th>IP</th>
-                        <th>City</th>
-                        <th>Region</th>
-                        <th>Country</th>
-                        <th>Status</th>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                    <tfoot>
-                    </tfoot>
-                </table>
             </div>
-            <div class="col-lg-6">
-                <div id="mapid" style="height: 385px"></div>
+        </div>
+    </div>
+    <hr>
+
+    <!-- <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                Logger
+            </div>
+            <div class="card-body">
+                <div class="col-lg-6">
+                    <div class="col-lg-6">
+                        <table class="table table-striped" id="hopsRTO">
+                            <thead>
+                                <th>Hop</th>
+                                <th>IP</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="col-lg-6">
+                        <blockquote class="blockquote mb-0">
+                            <div id="debug"></div>
+                        </blockquote>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-header">
+                Logger
+            </div>
+            <div class="card-body">
+                <div class="shadow-lg p-3 mb-5 bg-dark text-white text-success rounded" style="overflow:auto; height:150px;" id="console">
+                    <!-- <div class="console"> -->
+                    <p id="logger">
+                    </p>
+                    <!-- </div> -->
+                </div>
             </div>
         </div>
     </div>
@@ -79,28 +165,20 @@
     <div class="container-fluid">
         <div class="card">
             <div class="card-header">
-                Logger
+                footer
             </div>
             <div class="card-body">
-                <blockquote class="blockquote mb-0" id="logger">
-                </blockquote>
+                <div class="shadow-lg p-3 mb-5 bg-white rounded">
+                    <blockquote class="blockquote mb-0">
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
+                        <footer class="blockquote-footer">Someone famous in <cite title="Source Title">Source Title</cite></footer>
+                    </blockquote>
+                </div>
             </div>
         </div>
     </div>
-    <div class="container-fluid">
-        <div class="card">
-            <div class="card-header">
-                Quote
-            </div>
-            <div class="card-body">
-                <blockquote class="blockquote mb-0">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p>
-                    <footer class="blockquote-footer">Someone famous in <cite title="Source Title">Source Title</cite></footer>
-                </blockquote>
-            </div>
-        </div>
-    </div>
-    <script>
+
+    <script type="text/javascript">
         function disableButton(data, value) {
             var btn = document.getElementById('btn');
             btn.disabled = data;
@@ -109,8 +187,9 @@
         $(function() {
             var inform = $("#inform");
             var hostnameField = $("#hostname");
-            var hopCount = 0;
+            var logger = $("#logger");
             var realHop = 0;
+            var realHopRTO = 0;
             var prevLat = "";
             var prevLon = "";
             var speed = "";
@@ -124,84 +203,125 @@
             var polyline = null;
 
             // set up web socket
-            var socket = new WebSocket("ws://localhost:3000/");
-            socket.onerror = (error) => {
+            var socket_1 = new WebSocket(`ws://${location.host}/traceroute`);
+            var socket_2 = new WebSocket(`ws://${location.host}/logger`);
+
+            socket_1.onerror = (error) => {
                 alert("Error! Trace has stopped")
             };
-            socket.onmessage = (event) => {
-                var loc = JSON.parse(event.data);
-                var realLoc = JSON.parse(event.data);
-                console.time(loc)
-                if (loc.status == "fail") {
-                    return;
+            socket_1.onmessage = (event) => {
+                // let loc = JSON.parse(event.data);
+                let realLoc = JSON.parse(event.data);
+                console.log(realLoc)
+
+                if (realLoc.status == "fail") {
+                    return
                 }
-                if (loc.status == "done") {
-                    $("#hops tfoot").append("<tr><td>Trace is done</td></tr>")
+
+                if (!realLoc.status) {
+                    $("#hops tfoot").append("<tr><td>Trace is complete</td></tr>")
                     hostnameField.val("");
+                    disableButton(false, "Trace")
                     return;
                 }
 
-                // if (realLoc.status == "fail") {
-                //     return;
-                // }
-                if (realLoc.status == "done") {
-                    $("#hops tfoot").append("<tr><td>Trace is done</td></tr>")
-                    hostnameField.val("");
-                    return;
-                }
-
+                // don't plot duplicate hop
                 if (realLoc.lat == prevLat && realLoc.lon == prevLon) {
-                    // don't plot duplicate hop
-                    return;
+                    return
                 }
 
-                hopCount++;
                 realHop++;
-                var row = "<tr><td>" + realHop +
-                    "</td><td>" + realLoc.query +
-                    "</td><td>" + realLoc.city +
-                    "</td><td>" + realLoc.region +
-                    "</td><td>" + realLoc.country +
-                    "</td><td>" + realLoc.status +
-                    "</td></tr>";
+                let region = realLoc.region
+                if (realLoc.region == ""){ region = realLoc.city}
+
+                let row = "<tr><td>" + realHop +
+                "</td><td>" + realLoc.query +
+                "</td><td>" + realLoc.city +
+                "</td><td>" + region +
+                "</td><td>" + realLoc.country +
+                "</td><td>" + realLoc.status +
+                "</td></tr>";
+                let _out = document.getElementById("hops")
+
+                let _isScrolledToBottom = _out.scrollHeight - _out.clientHeight <= _out.scrollTop + 1;
                 $("#hops tbody").append(row);
-                prevLat = loc.lat;
-                prevLon = loc.lon;
-                var marker = L.marker([loc.lat, loc.lon], {
-                    title: "Hop: " + hopCount
+                // scroll to bottom if isScrolledToBotto
+                if (_isScrolledToBottom)
+                    _out.scrollTop = _out.scrollHeight - _out.clientHeight;
+                // let row = "<tr><td>" + realHop +
+                //     "</td><td>" + realLoc.query +
+                //     "</td><td>" + realLoc.city +
+                //     "</td><td>" + region +
+                //     "</td><td>" + realLoc.country +
+                //     "</td><td>" + realLoc.status +
+                //     "</td></tr>";
+                // $("#hops tbody").append(row);
+
+                prevLat = realLoc.lat;
+                prevLon = realLoc.lon;
+                let marker = L.marker([realLoc.lat, realLoc.lon], {
+                    title: "Hop: " + realHop
                 }).addTo(mymap);
                 layers.push(marker);
-                disableButton(false, "trace")
+
                 // draw polyline
                 if (polyline == null) {
                     polyline = L.polyline([
-                        [loc.lat, loc.lon]
+                        [realLoc.lat, realLoc.lon]
                     ], {
                         color: "purple"
                     }).addTo(mymap);
                     layers.push(polyline);
                 } else {
-                    var latlon = L.latLng(loc.lat, loc.lon);
+                    var latlon = L.latLng(realLoc.lat, realLoc.lon);
                     polyline.addLatLng(latlon);
                 }
             };
 
-            socket.onclose = (event) => {
+            socket_1.onclose = (event) => {
+                disableButton(false, "Trace")
+                hostnameField.val("");
+            };
+
+            socket_2.onmessage = (event) => {
+                let mess = JSON.parse(event.data)
+
+                if (typeof mess.statas == "undefined" || mess.status) {
+                    let logging = "<li> hop: " + mess.hop + ", rtt1: " + mess.rtt1 + ", ip: " + mess.ip + "</li>"
+
+                    let out = document.getElementById("console")
+
+                    let isScrolledToBottom = out.scrollHeight - out.clientHeight <= out.scrollTop + 1;
+                    console.log(out.scrollHeight - out.clientHeight, out.scrollTop + 1);
+                    $("#logger").append(logging)
+                    // scroll to bottom if isScrolledToBotto
+                    if (isScrolledToBottom)
+                        out.scrollTop = out.scrollHeight - out.clientHeight;
+
+                } else {
+                    $("#logger").append("Trace is complete")
+                    return
+                }
+            }
+            socket_2.onclose = (event) => {
                 disableButton(false)
                 hostnameField.val("");
             };
 
             inform.submit((event) => {
                 event.preventDefault();
-                disableButton(true, "Tracing")
+                disableButton(true, "Tracing...")
                 $("#hops tbody").html("");
-                $("#hops tfoot").html("");
+                // $("#hops tfoot").html("");
+                $("#logger").html("");
                 layers.filter(layer => layer != null).forEach(layer => mymap.removeLayer(layer));
                 polyline = null;
                 layers = [];
-                hopCount = 0;
-                socket.send(hostnameField.val());
+                realHop = 0;
+                socket_1.send(hostnameField.val());
+                socket_2.send(hostnameField.val());
             });
+
         });
     </script>
 </body>

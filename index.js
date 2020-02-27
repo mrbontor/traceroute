@@ -5,6 +5,7 @@ const WebSocket = require("ws");
 const Traceroute = require("nodejs-traceroute");
 const http = require("http");
 const fs = require("fs");
+const url = require('url');
 
 process.env.TZ = 'Asia/Jakarta'
 // default config if config file is not provided
@@ -37,6 +38,7 @@ logging.init({
 
 logging.info(`[CONFIG] ${JSON.stringify(iniParser.get())}`)
 
+
 const webServer = http.createServer((request, response) => {
     fs.readFile("./public/index.html", (err, data) => {
         response.writeHead(200, {
@@ -47,49 +49,80 @@ const webServer = http.createServer((request, response) => {
     });
 });
 
-const server = new WebSocket.Server({
-    server: webServer
+// const server = http.createServer();
+const wss1 = new WebSocket.Server({
+    // server: webServer,
+    noServer: true
+});
+const wss2 = new WebSocket.Server({
+    // server: webServer,
+    noServer: true
 });
 
-server.on("connection", (ws) => {
-    ws.on("message", (hostname) => {
-        const tracer = new Traceroute();
-        logging.info(`[StartTracing] ....`)
-        tracer
-        .on("hop", (hop) => {
-            logging.info(`[trace][${hop.hop}] >>>> ${JSON.stringify(hop)}`)
+wss1.on('connection', function connection(ws) {
+    // ...
+});
 
-            if (hop.ip == "*") { return }
+wss2.on('connection', function connection(ws) {
+    // ...
+});
 
-            const endpoint = config.api.url + hop.ip
-            let dataToTrace = [endpoint, hop.rtt1]
+let done = {status: false}
 
-            http.get(dataToTrace[0], (response) => {
-                let loc = "";
-                response.on("data", data => {
-                    loc += data
-                });
+webServer.on('upgrade', function upgrade(request, socket, head) {
+    const pathname = url.parse(request.url).pathname;
 
-                loc.speed = hop.rtt1
-                response.on("end", () => ws.send(loc))
-            }).on("error", (err) => {
-                logging.error(`[error] >>>> ${JSON.stringify(err)}`)
-            });
-        })
-        .on("close", (code) => {
-            const done = {status: "trace complete"}
-            logging.info(`[trace] >>>> Complete`)
-            ws.send(JSON.stringify(done))
+    if (pathname === '/traceroute') {
+        wss1.handleUpgrade(request, socket, head, function done(ws) {
+            wss1.emit('connection', ws, request);
+            ws.on("message", hostname => {
+                const tracer = new Traceroute();
+                logging.info(`[StartTracing] ....`)
+                tracer
+                    .on("hop", (hop) => {
+                        if (hop.ip == "*") {
+                            return
+                        }
+
+                        let endpoint = config.api.url + hop.ip
+
+                        http.get(endpoint, (response) => {
+                                let loc = "";
+                                response.on("data", data => {
+                                    loc += data
+                                });
+                                response.on("end", () => ws.send(loc))
+                            })
+                            .on("error", err => {
+                                logging.error(`[error] >>>> ${JSON.stringify(err)}`)
+                            });
+                    })
+                    .on("close", (code) => {
+                        ws.send(JSON.stringify(done))
+                    });
+
+                tracer.trace(hostname.toString());
+            })
         });
-
-        tracer.trace(hostname.toString());
-    });
+    } else if (pathname === '/logger') {
+        wss2.handleUpgrade(request, socket, head, function done(ws) {
+            wss2.emit('connection', ws, request);
+            ws.on("message", hostname => {
+                const tracer = new Traceroute();
+                tracer
+                    .on("hop", (hop) => {
+                        ws.send(JSON.stringify(hop))
+                    })
+                    .on("close", (code) => {
+                        ws.send(JSON.stringify(done))
+                    });
+                tracer.trace(hostname.toString());
+            })
+        });
+    } else {
+        socket.destroy();
+    }
 });
 
 webServer.listen(port);
 logging.info('[app] TRACE ROUTE STARTED on ' + port);
-
-function log(socket, data){
-     console.log(data);
-     socket.emit('message',data);
-}
